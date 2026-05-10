@@ -1,29 +1,61 @@
-export interface StoryWord {
+export type WordCategory = "thinking" | "expression" | "emotion" | "state" | "sense" | "logic";
+
+export interface VocabularyWord {
   id: string;
   word: string;
   meaning: string;
-  contextHint: string;
+  example: string;
+  simple: string;
+  category: WordCategory;
+  difficulty: 1 | 2 | 3;
+}
+
+export interface StoryCharacter {
+  id: string;
+  name: string;
+  role: string;
+  color: string;
+  accent: string;
+  image?: string;
+}
+
+export interface DialogueLine {
+  speakerId?: string;
+  text: string;
+  tone?: "normal" | "quiet" | "urgent" | "warm";
+}
+
+export interface ChoiceEffect {
+  score: number;
+  nextSceneId: string;
+  flags?: string[];
+  learnedWords?: string[];
+  reviewWords?: string[];
+  trust?: Record<string, number>;
 }
 
 export interface StoryChoice {
   id: string;
-  label: string;
   text: string;
-  nextSceneId: string;
-  feedback: string;
-  points: number;
+  intent: "correct" | "partial" | "wrong";
   wordId?: string;
+  feedback: string;
+  effect: ChoiceEffect;
 }
 
 export interface StoryScene {
   id: string;
   chapter: string;
   location: string;
+  title: string;
   focusWordId?: string;
-  questionType?: "meaning" | "blank" | "definitionToWord" | "synonym" | "situation";
-  narrative: string[];
-  prompt: string;
+  focusText?: string;
+  backgroundWordIds?: string[];
+  reviewWordIds?: string[];
+  lines: DialogueLine[];
+  prompt?: string;
   choices: StoryChoice[];
+  requiredFlags?: string[];
   ending?: {
     title: string;
     message: string;
@@ -36,6 +68,7 @@ export interface StoryAdventure {
   subtitle: string;
   mission: string;
   startSceneId: string;
-  words: StoryWord[];
+  characters: StoryCharacter[];
+  words: VocabularyWord[];
   scenes: StoryScene[];
 }

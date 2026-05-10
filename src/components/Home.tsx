@@ -1,32 +1,74 @@
 import { motion } from "motion/react";
 import { Play } from "lucide-react";
+import { FormEvent, useState } from "react";
 import { StoryAdventure } from "../types";
+import classroomLibraryBackground from "../assets/backgrounds/classroom-library.png";
 
 interface HomeProps {
   adventure: StoryAdventure;
-  onStart: () => void;
+  defaultName: string;
+  onStart: (name: string) => void;
 }
 
-export function Home({ adventure, onStart }: HomeProps) {
+export function Home({ adventure, defaultName, onStart }: HomeProps) {
+  const [name, setName] = useState(defaultName);
+
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    onStart(name);
+  };
+
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col items-center justify-center gap-8 px-5 py-8 text-center">
-      <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
-        <p className="inline-block rounded-full border-2 border-black bg-[#4ECDC4] px-4 py-2 text-sm font-black shadow-[3px_3px_0px_0px_#000]">
-          문맥 낱말 게임
-        </p>
+    <main className="flex min-h-screen items-center justify-center bg-[#F7F3EA] px-5 py-8 text-slate-950">
+      <section className="mx-auto grid w-full max-w-5xl items-center gap-9 lg:grid-cols-[1fr_360px]">
+        <motion.form initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} onSubmit={submit} className="text-center lg:text-left">
+          <h1 className="break-keep text-6xl font-black leading-tight tracking-normal sm:text-7xl">{adventure.title}</h1>
+          <p className="mt-5 break-keep text-2xl font-black leading-snug text-slate-600">이야기를 읽고 낱말을 맞혀요.</p>
 
-        <h1 className="break-keep text-5xl font-black leading-tight sm:text-7xl">{adventure.title}</h1>
+          <label className="mx-auto mt-8 block max-w-sm text-left lg:mx-0">
+            <span className="mb-2 block text-lg font-black text-slate-700">이름</span>
+            <input
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              maxLength={8}
+              className="h-16 w-full rounded-2xl border-2 border-slate-950 bg-white px-5 text-2xl font-black shadow-[4px_4px_0_#111827] outline-none focus:ring-4 focus:ring-emerald-200"
+            />
+          </label>
 
-        <p className="break-keep text-2xl font-black text-[#284B63]">{adventure.subtitle}</p>
+          <button
+            type="submit"
+            className="mt-10 inline-flex min-h-[76px] items-center gap-3 rounded-[22px] border-2 border-slate-950 bg-[#FDE68A] px-10 py-5 text-3xl font-black shadow-[7px_7px_0_#111827] transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-amber-300 active:translate-x-1 active:translate-y-1 active:shadow-none"
+          >
+            <Play size={34} fill="currentColor" />
+            시작
+          </button>
+        </motion.form>
 
-        <button
-          onClick={onStart}
-          className="inline-flex items-center gap-3 rounded-2xl border-4 border-black bg-[#FFD93D] px-8 py-5 text-2xl font-black shadow-[7px_7px_0px_0px_#000] transition-all hover:-translate-y-1 active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
+        <motion.div
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.08 }}
+          className="relative mx-auto h-[390px] w-full max-w-[360px] overflow-hidden rounded-[30px] border-2 border-slate-950 bg-white shadow-[9px_9px_0_#111827]"
+          aria-hidden="true"
         >
-          <Play size={30} fill="currentColor" />
-          시작하기
-        </button>
-      </motion.div>
+          <img src={classroomLibraryBackground} alt="" className="h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-white/15" />
+          <div className="absolute bottom-20 left-8 right-8 h-28 rounded-[22px] border-2 border-slate-950 bg-white/92 shadow-[5px_5px_0_#111827]" />
+          <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 items-end gap-3">
+            {adventure.characters.slice(1, 4).map((character) => (
+              character.image ? (
+                <div key={character.id} className="flex h-36 w-32 items-end justify-center">
+                  <img src={character.image} alt="" className="max-h-full max-w-full object-contain drop-shadow-[3px_3px_0_#111827]" />
+                </div>
+              ) : (
+                <div key={character.id} className="h-28 w-20 rounded-t-full border-2 border-slate-950 shadow-[3px_3px_0_#111827]" style={{ backgroundColor: character.color }}>
+                  <div className="mx-auto mt-8 h-10 w-10 rounded-full border-2 border-slate-950 bg-white" />
+                </div>
+              )
+            ))}
+          </div>
+        </motion.div>
+      </section>
     </main>
   );
 }
