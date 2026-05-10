@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { motion } from "motion/react";
 import confetti from "canvas-confetti";
 import { ArrowLeft, BookOpen, CheckCircle2, RotateCcw, Sparkles, Star, XCircle } from "lucide-react";
-import { DialogueLine, StoryAdventure, StoryCharacter, StoryChoice, StoryScene, VocabularyWord } from "../types";
+import { DialogueLine, StoryAdventure, StoryCharacter, StoryChoice, StoryQuiz, StoryScene, VocabularyWord } from "../types";
 import bookshelfCornerBackground from "../assets/backgrounds/bookshelf-corner.png";
 import classroomLibraryBackground from "../assets/backgrounds/classroom-library.png";
 import quietHallwayBackground from "../assets/backgrounds/quiet-hallway.png";
@@ -10,7 +10,6 @@ import secretLibraryBackground from "../assets/backgrounds/secret-library.png";
 
 interface StoryGameProps {
   adventure: StoryAdventure;
-  playerName: string;
   onBack: () => void;
 }
 
@@ -22,15 +21,17 @@ interface GameState {
   reviewWords: string[];
   relationships: Record<string, number>;
   path: string[];
+  runSeed: string;
 }
 
 const intentStyle = {
   correct: "border-emerald-700 bg-emerald-50",
-  partial: "border-amber-700 bg-amber-50",
   wrong: "border-rose-700 bg-rose-50",
 };
 
-export function StoryGame({ adventure, playerName, onBack }: StoryGameProps) {
+const PLAYER_LABEL = "나";
+
+export function StoryGame({ adventure, onBack }: StoryGameProps) {
   const [state, setState] = useState<GameState>(() => createInitialState(adventure.startSceneId));
   const [lineIndex, setLineIndex] = useState(0);
   const [selectedChoice, setSelectedChoice] = useState<StoryChoice | null>(null);
@@ -42,13 +43,16 @@ export function StoryGame({ adventure, playerName, onBack }: StoryGameProps) {
   );
   const currentLine = scene.lines[Math.min(lineIndex, scene.lines.length - 1)];
   const isDialogueComplete = lineIndex >= scene.lines.length - 1;
+  const currentQuiz = useMemo(() => pickSceneQuiz(scene, adventure.words, state.runSeed), [adventure.words, scene, state.runSeed]);
+  const currentChoices = useMemo(() => stableShuffle(currentQuiz?.choices ?? [], `${state.runSeed}-${scene.id}-${currentQuiz?.prompt ?? ""}`), [currentQuiz, scene.id, state.runSeed]);
+  const isQuestionOpen = isDialogueComplete && currentChoices.length > 0;
   const focusWord = scene.focusWordId ? findWord(adventure.words, scene.focusWordId) : undefined;
   const learnedWords = toWords(adventure.words, state.learnedWords);
   const reviewWords = toWords(
     adventure.words,
     state.reviewWords.filter((id) => !state.learnedWords.includes(id)),
   );
-  const playableSceneCount = adventure.scenes.filter((item) => item.choices.length > 0).length;
+  const playableSceneCount = adventure.scenes.filter((item) => item.choices.length > 0 || item.quizzes?.length).length;
   const progress = Math.round(((state.path.length - 1) / Math.max(playableSceneCount, 1)) * 100);
 
   const advanceLine = () => {
@@ -60,14 +64,24 @@ export function StoryGame({ adventure, playerName, onBack }: StoryGameProps) {
     if (selectedChoice) return;
     setSelectedChoice(choice);
 
-    if (choice.intent === "correct") {
-      confetti({
-        particleCount: 36,
-        spread: 52,
-        origin: { y: 0.78 },
-        colors: ["#10B981", "#F59E0B", "#38BDF8"],
-      });
+    if (choice.intent !== "correct") {
+      setState((current) => ({
+        ...current,
+        reviewWords: unique([...current.reviewWords, ...(choice.effect.reviewWords ?? []), ...(choice.wordId ? [choice.wordId] : [])]),
+        relationships: mergeTrust(current.relationships, choice.effect.trust),
+      }));
+      window.setTimeout(() => {
+        setSelectedChoice(null);
+      }, 1200);
+      return;
     }
+
+    confetti({
+      particleCount: 36,
+      spread: 52,
+      origin: { y: 0.78 },
+      colors: ["#10B981", "#F59E0B", "#38BDF8"],
+    });
 
     window.setTimeout(() => {
       setState((current) => ({
@@ -99,21 +113,22 @@ export function StoryGame({ adventure, playerName, onBack }: StoryGameProps) {
         <article className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-[28px] border-2 border-slate-950 bg-[#DDEFE7] shadow-[8px_8px_0_#111827]">
           <SceneBackdrop scene={scene} />
 
-          <div className="relative z-10 flex items-center justify-between gap-3 px-4 py-4 sm:px-6">
+          <div className={`relative z-10 flex items-center justify-between gap-3 px-4 sm:px-6 ${isQuestionOpen ? "py-3" : "py-4"}`}>
             <div className="rounded-full border-2 border-slate-950 bg-white/95 px-4 py-2 text-sm font-black shadow-[3px_3px_0_#111827] backdrop-blur">
               {scene.chapter} · {scene.location}
             </div>
           </div>
 
-          <CharacterStage characters={adventure.characters} line={currentLine} />
+          <CharacterStage characters={adventure.characters} line={currentLine} compact={isQuestionOpen} />
 
-          <div className="relative z-20 mt-auto p-3 pt-0 sm:p-5 sm:pt-0">
+          <div className={`relative z-20 mt-auto p-3 pt-0 ${isQuestionOpen ? "sm:p-4 sm:pt-0" : "sm:p-5 sm:pt-0"}`}>
             <SimpleDialogue
               scene={scene}
+              quiz={currentQuiz}
+              choices={currentChoices}
               line={currentLine}
               focusWord={focusWord}
               characters={adventure.characters}
-              playerName={playerName}
               isComplete={isDialogueComplete}
               selectedChoice={selectedChoice}
               onNext={advanceLine}
@@ -139,7 +154,6 @@ export function StoryGame({ adventure, playerName, onBack }: StoryGameProps) {
           score={state.score}
           learnedWords={learnedWords}
           reviewWords={reviewWords}
-          playerName={playerName}
           onRestart={restart}
           onBack={onBack}
         />
@@ -151,7 +165,7 @@ export function StoryGame({ adventure, playerName, onBack }: StoryGameProps) {
           animate={{ opacity: 1, y: 0 }}
           className={`fixed bottom-5 left-1/2 z-50 w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 rounded-2xl border-2 p-4 text-center shadow-[5px_5px_0_#111827] ${intentStyle[selectedChoice.intent]}`}
         >
-          <p className="break-keep text-xl font-black leading-8">{formatPlayerName(selectedChoice.feedback, playerName)}</p>
+          <p className="break-keep text-xl font-black leading-8">{formatPlayerName(selectedChoice.feedback)}</p>
         </motion.div>
       )}
     </main>
@@ -217,24 +231,26 @@ function getSceneBackground(sceneId: string) {
   return classroomLibraryBackground;
 }
 
-function CharacterStage({ characters, line }: { characters: StoryCharacter[]; line?: DialogueLine }) {
+function CharacterStage({ characters, line, compact }: { characters: StoryCharacter[]; line?: DialogueLine; compact: boolean }) {
   const friends = characters.filter((character) => ["rumi", "daram", "bambi"].includes(character.id));
   const activeId = line?.speakerId;
 
   return (
-    <div className="relative z-10 flex flex-1 items-end justify-center gap-3 px-3 pb-1 sm:gap-8 sm:pb-2 lg:gap-10">
+    <div className={`relative z-10 flex min-h-0 flex-1 items-end justify-center gap-3 px-3 pb-1 sm:gap-8 sm:pb-2 ${compact ? "lg:gap-8" : "lg:gap-10"}`}>
       {friends.map((character, index) => {
         const isActive = activeId === character.id || (!activeId && index === 1);
+        const imageSize = compact ? "w-44 sm:w-56 lg:w-60" : "w-52 sm:w-64 lg:w-72";
+        const shapeSize = compact ? "w-28 sm:w-40 lg:w-44" : "w-32 sm:w-48 lg:w-52";
         return (
           <motion.div
             key={character.id}
             animate={{ y: isActive ? -12 : 0, opacity: isActive ? 1 : 0.55, scale: isActive ? 1.05 : 0.94 }}
             transition={{ type: "spring", stiffness: 280, damping: 24 }}
-            className={`relative flex flex-col items-center ${character.image ? "w-52 sm:w-64 lg:w-72" : "w-32 sm:w-48 lg:w-52"}`}
+            className={`relative flex flex-col items-center ${character.image ? imageSize : shapeSize}`}
           >
             {isActive && <div className="absolute -inset-x-5 bottom-10 top-3 rounded-full bg-white/45 blur-xl" />}
             {character.image ? (
-              <div className="relative flex aspect-[3/4] w-full translate-y-5 items-end justify-center">
+              <div className="relative flex aspect-[3/4] w-full translate-y-9 items-end justify-center">
                 <img
                   src={character.image}
                   alt=""
@@ -261,26 +277,28 @@ function CharacterStage({ characters, line }: { characters: StoryCharacter[]; li
 
 function SimpleDialogue({
   scene,
+  quiz,
+  choices,
   line,
   focusWord,
   characters,
-  playerName,
   isComplete,
   selectedChoice,
   onNext,
   onChoose,
 }: {
   scene: StoryScene;
+  quiz?: StoryQuiz;
+  choices: StoryChoice[];
   line?: DialogueLine;
   focusWord?: VocabularyWord;
   characters: StoryCharacter[];
-  playerName: string;
   isComplete: boolean;
   selectedChoice: StoryChoice | null;
   onNext: () => void;
   onChoose: (choice: StoryChoice) => void;
 }) {
-  const speaker = getSpeaker(line?.speakerId, characters, playerName);
+  const speaker = getSpeaker(line?.speakerId, characters);
 
   return (
     <section className={`rounded-[24px] border-2 border-slate-950 bg-white/98 shadow-[7px_7px_0_#111827] backdrop-blur ${isComplete ? "p-3 sm:p-4" : "p-4 sm:p-5"}`}>
@@ -290,7 +308,7 @@ function SimpleDialogue({
 
       <div className={`${isComplete ? "gap-2" : "gap-4"} flex flex-col sm:flex-row sm:items-end sm:justify-between`}>
         <p className={`min-w-0 flex-1 break-keep font-black text-slate-950 ${isComplete ? "min-h-0 text-[1.55rem] leading-[1.45] sm:text-[1.9rem]" : "min-h-20 text-[1.7rem] leading-[1.58] sm:text-[2.05rem]"}`}>
-          {renderLineText(formatPlayerName(line?.text ?? "", playerName), scene.focusText ?? focusWord?.word)}
+          {renderLineText(formatPlayerName(line?.text ?? ""), scene.focusText ?? focusWord?.word)}
         </p>
 
         {!isComplete && (
@@ -303,11 +321,11 @@ function SimpleDialogue({
         )}
       </div>
 
-      {isComplete && scene.choices.length > 0 && (
+      {isComplete && quiz && choices.length > 0 && (
         <div className="mt-3 border-t-2 border-slate-100 pt-3">
-          <h2 className="mb-2 max-w-[28em] break-keep text-[1.35rem] font-black leading-snug sm:text-[1.55rem]">{formatPlayerName(scene.prompt ?? "", playerName)}</h2>
+          <h2 className="mb-2 max-w-[28em] break-keep text-[1.35rem] font-black leading-snug sm:text-[1.55rem]">{formatPlayerName(quiz.prompt)}</h2>
           <div className="grid gap-2 sm:grid-cols-3">
-            {scene.choices.map((choice) => {
+            {choices.map((choice) => {
               const isSelected = selectedChoice?.id === choice.id;
               return (
                 <button
@@ -363,11 +381,11 @@ function SpeakerLabel({ speaker, fallback }: { speaker?: StoryCharacter; fallbac
   );
 }
 
-function getSpeaker(speakerId: string | undefined, characters: StoryCharacter[], playerName: string) {
+function getSpeaker(speakerId: string | undefined, characters: StoryCharacter[]) {
   if (speakerId === "player") {
     return {
       id: "player",
-      name: playerName,
+      name: PLAYER_LABEL,
       role: "주인공",
       color: "#F8FAFC",
       accent: "#111827",
@@ -392,8 +410,8 @@ function renderLineText(text: string, focusWord?: string) {
   });
 }
 
-function formatPlayerName(text: string, playerName: string) {
-  return text.replaceAll("{player}", playerName);
+function formatPlayerName(text: string) {
+  return text.replaceAll("{player}", PLAYER_LABEL);
 }
 
 function NotebookModal({
@@ -461,7 +479,6 @@ function EndingOverlay({
   score,
   learnedWords,
   reviewWords,
-  playerName,
   onRestart,
   onBack,
 }: {
@@ -469,7 +486,6 @@ function EndingOverlay({
   score: number;
   learnedWords: VocabularyWord[];
   reviewWords: VocabularyWord[];
-  playerName: string;
   onRestart: () => void;
   onBack: () => void;
 }) {
@@ -485,7 +501,7 @@ function EndingOverlay({
         </div>
         <p className="text-lg font-black text-slate-500">점수 {score}</p>
         <h2 className="mt-1 break-keep text-4xl font-black">{scene.ending?.title}</h2>
-        <p className="mx-auto mt-3 max-w-xl break-keep text-xl font-bold leading-8 text-slate-700">{formatPlayerName(scene.ending?.message ?? "", playerName)}</p>
+        <p className="mx-auto mt-3 max-w-xl break-keep text-xl font-bold leading-8 text-slate-700">{formatPlayerName(scene.ending?.message ?? "")}</p>
         <div className="mt-5 grid gap-3 rounded-2xl bg-slate-50 p-4 text-left sm:grid-cols-2">
           <MiniList title="잘 쓴 낱말" items={learnedWords.map((word) => word.word)} empty="아직 없어요." />
           <MiniList title="다시 볼 낱말" items={reviewWords.map((word) => word.word)} empty="없어요." />
@@ -516,7 +532,94 @@ function createInitialState(startSceneId: string): GameState {
     reviewWords: [],
     relationships: {},
     path: [startSceneId],
+    runSeed: `${Date.now()}-${Math.random()}`,
   };
+}
+
+function pickSceneQuiz(scene: StoryScene, words: VocabularyWord[], runSeed: string): StoryQuiz | undefined {
+  const quizzes = getSceneQuizzes(scene, words);
+  if (quizzes.length === 0) return undefined;
+  return quizzes[hashSeed(`${runSeed}-${scene.id}`) % quizzes.length];
+}
+
+function getSceneQuizzes(scene: StoryScene, words: VocabularyWord[]): StoryQuiz[] {
+  const quizzes = [...(scene.quizzes ?? [])];
+  const focusWord = scene.focusWordId ? findWord(words, scene.focusWordId) : undefined;
+
+  if (scene.prompt && scene.choices.length > 0 && scene.quizType) {
+    quizzes.unshift({
+      quizType: scene.quizType,
+      prompt: scene.prompt,
+      choices: scene.choices,
+    });
+  }
+
+  if (focusWord && scene.choices.length > 0) {
+    quizzes.push(...createGeneratedQuizzes(scene, words, focusWord));
+  }
+
+  return quizzes;
+}
+
+function createGeneratedQuizzes(scene: StoryScene, words: VocabularyWord[], focusWord: VocabularyWord): StoryQuiz[] {
+  const correctChoice = scene.choices.find((choice) => choice.intent === "correct") ?? scene.choices[0];
+  const wrongChoices = scene.choices.filter((choice) => choice.intent === "wrong");
+  const firstWrongChoice = wrongChoices[0] ?? scene.choices[1] ?? correctChoice;
+  const secondWrongChoice = wrongChoices[1] ?? scene.choices[2] ?? firstWrongChoice;
+  const distractors = pickDistractorWords(words, focusWord, scene.id);
+  const [firstWrongWord, secondWrongWord] = distractors;
+
+  return [
+    {
+      quizType: "meaning",
+      prompt: `'${focusWord.word}'의 뜻으로 알맞은 것은?`,
+      choices: [
+        createQuizChoice(correctChoice, `${scene.id}-meaning-correct`, focusWord.meaning, "correct", focusWord.id, `'${focusWord.word}'의 뜻을 잘 골랐다.`),
+        createQuizChoice(firstWrongChoice, `${scene.id}-meaning-wrong-a`, firstWrongWord.meaning, "wrong", firstWrongWord.id, `'${firstWrongWord.word}'의 뜻에 더 가깝다.`),
+        createQuizChoice(secondWrongChoice, `${scene.id}-meaning-wrong-b`, secondWrongWord.meaning, "wrong", secondWrongWord.id, `'${secondWrongWord.word}'의 뜻에 더 가깝다.`),
+      ],
+    },
+    {
+      quizType: "synonym",
+      prompt: `'${focusWord.word}'와 뜻이 가까운 말은?`,
+      choices: [
+        createQuizChoice(correctChoice, `${scene.id}-synonym-correct`, focusWord.simple, "correct", focusWord.id, `'${focusWord.word}'와 가까운 말을 찾았다.`),
+        createQuizChoice(firstWrongChoice, `${scene.id}-synonym-wrong-a`, firstWrongWord.simple, "wrong", firstWrongWord.id, `'${firstWrongWord.simple}'는 '${firstWrongWord.word}'와 더 가깝다.`),
+        createQuizChoice(secondWrongChoice, `${scene.id}-synonym-wrong-b`, secondWrongWord.simple, "wrong", secondWrongWord.id, `'${secondWrongWord.simple}'는 '${secondWrongWord.word}'와 더 가깝다.`),
+      ],
+    },
+  ];
+}
+
+function createQuizChoice(
+  source: StoryChoice,
+  id: string,
+  text: string,
+  intent: StoryChoice["intent"],
+  wordId: string,
+  feedback: string,
+): StoryChoice {
+  return {
+    ...source,
+    id,
+    text,
+    intent,
+    wordId,
+    feedback,
+  };
+}
+
+function pickDistractorWords(words: VocabularyWord[], focusWord: VocabularyWord, seed: string) {
+  const candidates = stableShuffle(
+    words.filter((word) => word.id !== focusWord.id && word.category === focusWord.category),
+    `${seed}-${focusWord.id}-same-category`,
+  );
+  const fallback = stableShuffle(
+    words.filter((word) => word.id !== focusWord.id && word.category !== focusWord.category),
+    `${seed}-${focusWord.id}-fallback`,
+  );
+
+  return [...candidates, ...fallback].slice(0, 2);
 }
 
 function findWord(words: VocabularyWord[], id: string) {
@@ -540,6 +643,30 @@ function mergeTrust(current: Record<string, number>, next?: Record<string, numbe
     merged[id] = (merged[id] ?? 0) + value;
   }
   return merged;
+}
+
+function stableShuffle<T>(items: T[], seed: string) {
+  const shuffled = [...items];
+  let state = hashSeed(seed);
+
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    state = (state * 1664525 + 1013904223) >>> 0;
+    const swapIndex = state % (index + 1);
+    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+  }
+
+  return shuffled;
+}
+
+function hashSeed(seed: string) {
+  let hash = 2166136261;
+
+  for (let index = 0; index < seed.length; index += 1) {
+    hash ^= seed.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return hash >>> 0;
 }
 
 function flagsToText(flags: string[]) {

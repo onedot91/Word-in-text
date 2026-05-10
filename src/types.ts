@@ -37,10 +37,16 @@ export interface ChoiceEffect {
 export interface StoryChoice {
   id: string;
   text: string;
-  intent: "correct" | "partial" | "wrong";
+  intent: "correct" | "wrong";
   wordId?: string;
   feedback: string;
   effect: ChoiceEffect;
+}
+
+export interface StoryQuiz {
+  quizType: "meaning" | "synonym" | "blank" | "usage" | "situation";
+  prompt: string;
+  choices: StoryChoice[];
 }
 
 export interface StoryScene {
@@ -48,6 +54,7 @@ export interface StoryScene {
   chapter: string;
   location: string;
   title: string;
+  quizType?: "meaning" | "synonym" | "blank" | "usage" | "situation";
   focusWordId?: string;
   focusText?: string;
   backgroundWordIds?: string[];
@@ -55,6 +62,7 @@ export interface StoryScene {
   lines: DialogueLine[];
   prompt?: string;
   choices: StoryChoice[];
+  quizzes?: StoryQuiz[];
   requiredFlags?: string[];
   ending?: {
     title: string;
