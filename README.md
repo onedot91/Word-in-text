@@ -1,20 +1,21 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# 사라진 씨앗 상자
 
-# Run and deploy your AI Studio app
+초등학교 3학년 학생을 위한 스토리텔링 기반 텍스트형 낱말 학습 게임입니다.
 
-This contains everything you need to run your app locally.
+학생은 사건을 해결하는 이야기 속에서 장면을 읽고 선택지를 고릅니다. 선택지는 낱말의 뜻을 직접 묻는 대신, 문맥에 맞는 행동과 표현을 고르게 설계되어 있습니다.
 
-View your app in AI Studio: https://ai.studio/apps/54797b1f-1451-4ba8-bb49-aa4e4cf3c0b8
+## 주요 흐름
+
+1. 이야기 장면을 읽고 단서를 확인합니다.
+2. 장면에 어울리는 낱말 기반 선택지를 고릅니다.
+3. 선택 결과에 따라 점수와 탐정 노트가 갱신됩니다.
+4. 모험을 끝내면 배운 낱말과 최종 점수를 확인합니다.
 
 ## Run Locally
 
-**Prerequisites:**  Node.js
-
+**Prerequisites:** Node.js
 
 1. Install dependencies:
    `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
+2. Run the app:
    `npm run dev`

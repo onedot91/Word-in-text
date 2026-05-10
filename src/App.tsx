@@ -1,42 +1,17 @@
 import { useState } from "react";
 import { Home } from "./components/Home";
-import { Flashcards } from "./components/Flashcards";
-import { Quiz } from "./components/Quiz";
-import { DEFAULT_WORDS } from "./services/aiService";
-import { Word } from "./types";
+import { StoryGame } from "./components/StoryGame";
+import { DEFAULT_ADVENTURE } from "./services/aiService";
 
-type View = "home" | "flashcards" | "quiz";
+type View = "home" | "game";
 
 export default function App() {
   const [currentView, setCurrentView] = useState<View>("home");
-  const [words, setWords] = useState<Word[]>(DEFAULT_WORDS);
-
-  const handleAddWords = (newWords: Omit<Word, "id">[]) => {
-    const wordsWithId = newWords.map((w) => ({
-      ...w,
-      id: Math.random().toString(36).substr(2, 9),
-    }));
-    setWords((prev) => [...prev, ...wordsWithId]);
-  };
 
   return (
-    <div className="min-h-screen bg-[#FFFBEB] font-sans selection:bg-[#4ECDC4] selection:text-white">
-      {currentView === "home" && <Home onNavigate={setCurrentView} />}
-      
-      {currentView === "flashcards" && (
-        <Flashcards 
-          onBack={() => setCurrentView("home")} 
-          words={words} 
-          onAddWords={handleAddWords} 
-        />
-      )}
-      
-      {currentView === "quiz" && (
-        <Quiz 
-          onBack={() => setCurrentView("home")} 
-          words={words} 
-        />
-      )}
+    <div className="min-h-screen bg-[#FFF8E7] font-sans text-black selection:bg-[#4ECDC4] selection:text-black">
+      {currentView === "home" && <Home adventure={DEFAULT_ADVENTURE} onStart={() => setCurrentView("game")} />}
+      {currentView === "game" && <StoryGame adventure={DEFAULT_ADVENTURE} onBack={() => setCurrentView("home")} />}
     </div>
   );
 }

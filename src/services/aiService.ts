@@ -1,106 +1,225 @@
-import { GoogleGenAI, Type } from "@google/genai";
-import { Word } from "../types";
+import { StoryAdventure } from "../types";
 
-// Fallback hardcoded words for 3rd grade level if API fails or for initial state
-export const DEFAULT_WORDS: Word[] = [
-  {
-    id: "1",
-    word: "관찰하다",
-    meaning: "사물이나 현상을 주의 깊게 자세히 살펴보는 것",
-    example: "돋보기로 나뭇잎의 잎맥을 관찰했어요.",
-  },
-  {
-    id: "2",
-    word: "상상하다",
-    meaning: "실제로 경험하지 않은 것을 마음속으로 그려 보는 것",
-    example: "나는 구름 위를 나는 상상을 해요.",
-  },
-  {
-    id: "3",
-    word: "경험하다",
-    meaning: "자신이 실제로 해 보거나 겪어 보는 것",
-    example: "캠핑을 가서 텐트에서 자는 것을 경험했어요.",
-  },
-  {
-    id: "4",
-    word: "발견하다",
-    meaning: "미처 찾아내지 못했거나 아직 알려지지 않은 것을 찾아내는 것",
-    example: "공원에서 네잎클로버를 발견했어요.",
-  },
-  {
-    id: "5",
-    word: "협동하다",
-    meaning: "서로 마음과 힘을 하나로 합치는 것",
-    example: "친구들과 협동해서 종이탑을 높이 쌓았어요.",
-  },
-  {
-    id: "6",
-    word: "겸손하다",
-    meaning: "남을 존중하고 자기를 낮추는 태도",
-    example: "칭찬을 듣고 겸손하게 대답했습니다.",
-  },
-  {
-    id: "7",
-    word: "배려하다",
-    meaning: "도와주거나 보살펴 주려고 마음을 쓰는 것",
-    example: "무거운 짐을 드신 할머니를 위해 자리를 배려했습니다.",
-  },
-  {
-    id: "8",
-    word: "노력하다",
-    meaning: "목적을 이루기 위하여 몸과 마음을 다하여 애를 쓰는 것",
-    example: "시험을 잘 보기 위해 매일 꾸준히 노력했습니다.",
-  }
-];
-
-export async function generateNewWords(): Promise<Word[]> {
-  try {
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: "한국 초등학교 3학년 국어 및 생활 수준에 맞는 새로운 필수 낱말 5개를 생성해줘. 단어, 뜻, 그리고 아이들이 이해하기 쉬운 예문을 포함해.",
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              word: {
-                type: Type.STRING,
-                description: "초등학교 3학년 수준의 낱말",
-              },
-              meaning: {
-                type: Type.STRING,
-                description: "낱말의 뜻풀이 (아이들이 이해하기 쉽게)",
-              },
-              example: {
-                type: Type.STRING,
-                description: "그 낱말이 사용된 자연스러운 짧은 예문",
-              },
-            },
-            required: ["word", "meaning", "example"],
-          },
-        },
+export const DEFAULT_ADVENTURE: StoryAdventure = {
+  id: "study-literary-words",
+  title: "바람이 지나간 잎",
+  subtitle: "학습도구어와 문학 어휘",
+  mission: "이야기를 읽고 낱말을 익혀요.",
+  startSceneId: "observe",
+  words: [
+    { id: "observe", word: "관찰하다", meaning: "자세히 살펴보다.", contextHint: "자세히 본다." },
+    { id: "compare", word: "비교하다", meaning: "둘 이상의 같고 다른 점을 살펴보다.", contextHint: "같은 점과 다른 점을 본다." },
+    { id: "infer", word: "추론하다", meaning: "단서를 보고 생각해 내다.", contextHint: "단서로 짐작한다." },
+    { id: "classify", word: "분류하다", meaning: "기준에 따라 나누다.", contextHint: "무리로 나눈다." },
+    { id: "record", word: "기록하다", meaning: "글이나 그림으로 남기다.", contextHint: "적어 둔다." },
+    { id: "explain", word: "설명하다", meaning: "알기 쉽게 말해 주다.", contextHint: "이유를 말해 준다." },
+    { id: "rustle", word: "살랑이다", meaning: "가볍고 부드럽게 움직이다.", contextHint: "바람에 조금씩 흔들린다." },
+    { id: "faint", word: "희미하다", meaning: "또렷하지 않고 흐릿하다.", contextHint: "잘 보이지 않는다." },
+    { id: "glimmer", word: "반짝이다", meaning: "작은 빛이 잠깐 빛나다.", contextHint: "빛이 난다." },
+    { id: "cozy", word: "포근하다", meaning: "따뜻하고 편안하다.", contextHint: "마음이 편안하다." },
+  ],
+  scenes: [
+    {
+      id: "observe",
+      chapter: "1장",
+      location: "교실",
+      focusWordId: "observe",
+      questionType: "meaning",
+      narrative: [
+        "선생님은 여러 가지 잎을 책상 위에 놓았습니다.",
+        "잎마다 색깔과 모양이 조금씩 달랐습니다.",
+        "민지는 잎의 모양을 천천히 관찰했습니다.",
+      ],
+      prompt: "글 속 낱말 '관찰했습니다'의 뜻은?",
+      choices: [
+        { id: "observe-a", label: "A", text: "자세히 살펴보았습니다.", nextSceneId: "rustle", feedback: "좋아요.", points: 2, wordId: "observe" },
+        { id: "observe-b", label: "B", text: "소리 내어 읽었습니다.", nextSceneId: "rustle", feedback: "다시 생각해 봐요.", points: 0 },
+        { id: "observe-c", label: "C", text: "빠르게 뛰었습니다.", nextSceneId: "rustle", feedback: "다시 생각해 봐요.", points: 0 },
+        { id: "observe-d", label: "D", text: "친구에게 나누어 주었습니다.", nextSceneId: "rustle", feedback: "다시 생각해 봐요.", points: 0 },
+      ],
+    },
+    {
+      id: "rustle",
+      chapter: "2장",
+      location: "창가",
+      focusWordId: "rustle",
+      questionType: "meaning",
+      narrative: [
+        "창문이 조금 열리자 바람이 들어왔습니다.",
+        "얇은 잎 하나가 책상 위에서 살랑였습니다.",
+        "아이들은 조용히 그 움직임을 바라보았습니다.",
+      ],
+      prompt: "글 속 낱말 '살랑였습니다'의 뜻은?",
+      choices: [
+        { id: "rustle-a", label: "A", text: "가볍게 움직였습니다.", nextSceneId: "compare", feedback: "맞아요.", points: 2, wordId: "rustle" },
+        { id: "rustle-b", label: "B", text: "아주 세게 부딪혔습니다.", nextSceneId: "compare", feedback: "다시 생각해 봐요.", points: 0 },
+        { id: "rustle-c", label: "C", text: "완전히 멈추었습니다.", nextSceneId: "compare", feedback: "다시 생각해 봐요.", points: 0 },
+        { id: "rustle-d", label: "D", text: "큰 소리로 외쳤습니다.", nextSceneId: "compare", feedback: "다시 생각해 봐요.", points: 0 },
+      ],
+    },
+    {
+      id: "compare",
+      chapter: "3장",
+      location: "모둠 책상",
+      focusWordId: "compare",
+      questionType: "blank",
+      narrative: [
+        "둥근 잎과 길쭉한 잎을 나란히 놓았습니다.",
+        "아이들은 두 잎의 같은 점과 다른 점을 찾았습니다.",
+        "모둠은 두 잎을 비교했습니다.",
+      ],
+      prompt: "빈칸에 들어갈 낱말은?",
+      choices: [
+        { id: "compare-a", label: "A", text: "비교했습니다", nextSceneId: "faint", feedback: "맞아요.", points: 2, wordId: "compare" },
+        { id: "compare-b", label: "B", text: "기록했습니다", nextSceneId: "faint", feedback: "다시 생각해 봐요.", points: 0 },
+        { id: "compare-c", label: "C", text: "설명했습니다", nextSceneId: "faint", feedback: "다시 생각해 봐요.", points: 0 },
+        { id: "compare-d", label: "D", text: "분류했습니다", nextSceneId: "faint", feedback: "다시 생각해 봐요.", points: 0 },
+      ],
+    },
+    {
+      id: "faint",
+      chapter: "4장",
+      location: "낡은 책",
+      focusWordId: "faint",
+      questionType: "synonym",
+      narrative: [
+        "책장 사이에서 오래된 잎 그림이 나왔습니다.",
+        "그림 아래 글씨는 오래되어 희미했습니다.",
+        "민지는 눈을 가까이 대고 글씨를 읽었습니다.",
+      ],
+      prompt: "'희미했습니다'와 비슷한 뜻은?",
+      choices: [
+        { id: "faint-a", label: "A", text: "흐릿했습니다.", nextSceneId: "infer", feedback: "좋아요.", points: 2, wordId: "faint" },
+        { id: "faint-b", label: "B", text: "시끄러웠습니다.", nextSceneId: "infer", feedback: "다시 생각해 봐요.", points: 0 },
+        { id: "faint-c", label: "C", text: "무거웠습니다.", nextSceneId: "infer", feedback: "다시 생각해 봐요.", points: 0 },
+        { id: "faint-d", label: "D", text: "차가웠습니다.", nextSceneId: "infer", feedback: "다시 생각해 봐요.", points: 0 },
+      ],
+    },
+    {
+      id: "infer",
+      chapter: "5장",
+      location: "창가",
+      focusWordId: "infer",
+      questionType: "definitionToWord",
+      narrative: [
+        "창가의 잎은 다른 잎보다 더 진한 초록색이었습니다.",
+        "창가에는 햇빛이 오래 들어왔습니다.",
+        "민지는 햇빛 때문에 잎 색이 진해졌다고 추론했습니다.",
+      ],
+      prompt: "이 장면에 알맞은 낱말은?",
+      choices: [
+        { id: "infer-a", label: "A", text: "추론했습니다", nextSceneId: "classify", feedback: "좋아요.", points: 2, wordId: "infer" },
+        { id: "infer-b", label: "B", text: "관찰했습니다", nextSceneId: "classify", feedback: "다시 생각해 봐요.", points: 0 },
+        { id: "infer-c", label: "C", text: "기록했습니다", nextSceneId: "classify", feedback: "다시 생각해 봐요.", points: 0 },
+        { id: "infer-d", label: "D", text: "비교했습니다", nextSceneId: "classify", feedback: "다시 생각해 봐요.", points: 0 },
+      ],
+    },
+    {
+      id: "classify",
+      chapter: "6장",
+      location: "칠판 앞",
+      focusWordId: "classify",
+      questionType: "situation",
+      narrative: [
+        "아이들은 잎을 모양에 따라 나누었습니다.",
+        "둥근 잎은 왼쪽, 길쭉한 잎은 오른쪽에 붙였습니다.",
+        "선생님은 기준을 정해 나누었다고 말했습니다.",
+      ],
+      prompt: "이 상황에 어울리는 낱말은?",
+      choices: [
+        { id: "classify-a", label: "A", text: "분류했습니다", nextSceneId: "glimmer", feedback: "맞아요.", points: 2, wordId: "classify" },
+        { id: "classify-b", label: "B", text: "설명했습니다", nextSceneId: "glimmer", feedback: "다시 생각해 봐요.", points: 0 },
+        { id: "classify-c", label: "C", text: "관찰했습니다", nextSceneId: "glimmer", feedback: "다시 생각해 봐요.", points: 0 },
+        { id: "classify-d", label: "D", text: "추론했습니다", nextSceneId: "glimmer", feedback: "다시 생각해 봐요.", points: 0 },
+      ],
+    },
+    {
+      id: "glimmer",
+      chapter: "7장",
+      location: "복도",
+      focusWordId: "glimmer",
+      questionType: "blank",
+      narrative: [
+        "복도 창으로 오후 햇살이 들어왔습니다.",
+        "잎 표면의 작은 물방울이 반짝였습니다.",
+        "아이들은 빛나는 잎을 보며 감탄했습니다.",
+      ],
+      prompt: "빈칸에 들어갈 낱말은?",
+      choices: [
+        { id: "glimmer-a", label: "A", text: "반짝였습니다", nextSceneId: "record", feedback: "맞아요.", points: 2, wordId: "glimmer" },
+        { id: "glimmer-b", label: "B", text: "희미했습니다", nextSceneId: "record", feedback: "다시 생각해 봐요.", points: 0 },
+        { id: "glimmer-c", label: "C", text: "분류했습니다", nextSceneId: "record", feedback: "다시 생각해 봐요.", points: 0 },
+        { id: "glimmer-d", label: "D", text: "설명했습니다", nextSceneId: "record", feedback: "다시 생각해 봐요.", points: 0 },
+      ],
+    },
+    {
+      id: "record",
+      chapter: "8장",
+      location: "탐구 노트",
+      focusWordId: "record",
+      questionType: "synonym",
+      narrative: [
+        "민지는 잎의 모양과 색깔을 노트에 적었습니다.",
+        "친구들은 알게 된 내용을 그림으로도 남겼습니다.",
+        "모둠은 결과를 탐구 노트에 기록했습니다.",
+      ],
+      prompt: "'기록했습니다'와 비슷한 뜻은?",
+      choices: [
+        { id: "record-a", label: "A", text: "적어 두었습니다.", nextSceneId: "cozy", feedback: "좋아요.", points: 2, wordId: "record" },
+        { id: "record-b", label: "B", text: "무리로 나누었습니다.", nextSceneId: "cozy", feedback: "다시 생각해 봐요.", points: 0 },
+        { id: "record-c", label: "C", text: "단서를 보고 생각했습니다.", nextSceneId: "cozy", feedback: "다시 생각해 봐요.", points: 0 },
+        { id: "record-d", label: "D", text: "알기 쉽게 말했습니다.", nextSceneId: "cozy", feedback: "다시 생각해 봐요.", points: 0 },
+      ],
+    },
+    {
+      id: "cozy",
+      chapter: "9장",
+      location: "도서관",
+      focusWordId: "cozy",
+      questionType: "meaning",
+      narrative: [
+        "아이들은 도서관 창가에 둘러앉았습니다.",
+        "햇살이 따뜻하게 내려와 자리가 포근했습니다.",
+        "민지는 그곳에서 발표할 말을 조용히 떠올렸습니다.",
+      ],
+      prompt: "글 속 낱말 '포근했습니다'의 뜻은?",
+      choices: [
+        { id: "cozy-a", label: "A", text: "따뜻하고 편안했습니다.", nextSceneId: "explain", feedback: "좋아요.", points: 2, wordId: "cozy" },
+        { id: "cozy-b", label: "B", text: "무섭고 어두웠습니다.", nextSceneId: "explain", feedback: "다시 생각해 봐요.", points: 0 },
+        { id: "cozy-c", label: "C", text: "매우 시끄러웠습니다.", nextSceneId: "explain", feedback: "다시 생각해 봐요.", points: 0 },
+        { id: "cozy-d", label: "D", text: "차갑고 딱딱했습니다.", nextSceneId: "explain", feedback: "다시 생각해 봐요.", points: 0 },
+      ],
+    },
+    {
+      id: "explain",
+      chapter: "10장",
+      location: "발표 자리",
+      focusWordId: "explain",
+      questionType: "blank",
+      narrative: [
+        "발표 시간이 되자 민지가 앞으로 나왔습니다.",
+        "민지는 잎을 나눈 기준과 이유를 친구들에게 말했습니다.",
+        "민지는 탐구 결과를 설명했습니다.",
+      ],
+      prompt: "빈칸에 들어갈 낱말은?",
+      choices: [
+        { id: "explain-a", label: "A", text: "설명했습니다", nextSceneId: "complete", feedback: "맞아요.", points: 2, wordId: "explain" },
+        { id: "explain-b", label: "B", text: "관찰했습니다", nextSceneId: "complete", feedback: "다시 생각해 봐요.", points: 0 },
+        { id: "explain-c", label: "C", text: "비교했습니다", nextSceneId: "complete", feedback: "다시 생각해 봐요.", points: 0 },
+        { id: "explain-d", label: "D", text: "기록했습니다", nextSceneId: "complete", feedback: "다시 생각해 봐요.", points: 0 },
+      ],
+    },
+    {
+      id: "complete",
+      chapter: "완료",
+      location: "교실",
+      narrative: ["탐구 노트와 낱말 이야기가 완성되었습니다."],
+      prompt: "끝",
+      choices: [],
+      ending: {
+        title: "완성!",
+        message: "끝",
       },
-    });
-
-    const jsonStr = response.text?.trim() || "";
-    // Handle potential markdown code block formatting
-    const cleanJson = jsonStr.replace(/^```json/g, "").replace(/```$/g, "").trim();
-    
-    let generatedWords = JSON.parse(cleanJson);
-    
-    // Add unique IDs to the generated words
-    return generatedWords.map((w: any) => ({
-      id: Math.random().toString(36).substr(2, 9),
-      word: w.word,
-      meaning: w.meaning,
-      example: w.example,
-    }));
-  } catch (error) {
-    console.error("AI 단어 생성 실패:", error);
-    throw error;
-  }
-}
+    },
+  ],
+};
