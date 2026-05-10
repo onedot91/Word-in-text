@@ -1,10 +1,10 @@
 import { StoryAdventure } from "../types";
 
 export const DEFAULT_ADVENTURE: StoryAdventure = {
-  id: "study-literary-words",
-  title: "바람이 지나간 잎",
+  id: "goma-story-words",
+  title: "고마 이야기",
   subtitle: "학습도구어와 문학 어휘",
-  mission: "이야기를 읽고 낱말을 익혀요.",
+  mission: "고마와 함께 이야기를 읽고 낱말을 익혀요.",
   startSceneId: "observe",
   words: [
     { id: "observe", word: "관찰하다", meaning: "자세히 살펴보다.", contextHint: "자세히 본다." },
@@ -22,39 +22,39 @@ export const DEFAULT_ADVENTURE: StoryAdventure = {
     {
       id: "observe",
       chapter: "1장",
-      location: "교실",
+      location: "숲속 교실",
       focusWordId: "observe",
       questionType: "meaning",
       narrative: [
-        "선생님은 여러 가지 잎을 책상 위에 놓았습니다.",
-        "잎마다 색깔과 모양이 조금씩 달랐습니다.",
-        "민지는 잎의 모양을 천천히 관찰했습니다.",
+        "곰 친구 고마는 숲속 학교 3학년입니다.",
+        "어느 아침, 교실 창가에 작은 꿀단지가 놓여 있었습니다.",
+        "고마는 꿀단지 옆의 발자국과 꽃가루를 천천히 관찰했습니다.",
       ],
       prompt: "글 속 낱말 '관찰했습니다'의 뜻은?",
       choices: [
         { id: "observe-a", label: "A", text: "자세히 살펴보았습니다.", nextSceneId: "rustle", feedback: "좋아요.", points: 2, wordId: "observe" },
-        { id: "observe-b", label: "B", text: "소리 내어 읽었습니다.", nextSceneId: "rustle", feedback: "다시 생각해 봐요.", points: 0 },
-        { id: "observe-c", label: "C", text: "빠르게 뛰었습니다.", nextSceneId: "rustle", feedback: "다시 생각해 봐요.", points: 0 },
-        { id: "observe-d", label: "D", text: "친구에게 나누어 주었습니다.", nextSceneId: "rustle", feedback: "다시 생각해 봐요.", points: 0 },
+        { id: "observe-b", label: "B", text: "큰 소리로 노래했습니다.", nextSceneId: "rustle", feedback: "다시 생각해 봐요.", points: 0 },
+        { id: "observe-c", label: "C", text: "빨리 달려갔습니다.", nextSceneId: "rustle", feedback: "다시 생각해 봐요.", points: 0 },
+        { id: "observe-d", label: "D", text: "친구에게 숨겼습니다.", nextSceneId: "rustle", feedback: "다시 생각해 봐요.", points: 0 },
       ],
     },
     {
       id: "rustle",
       chapter: "2장",
-      location: "창가",
+      location: "교실 창가",
       focusWordId: "rustle",
       questionType: "meaning",
       narrative: [
-        "창문이 조금 열리자 바람이 들어왔습니다.",
-        "얇은 잎 하나가 책상 위에서 살랑였습니다.",
-        "아이들은 조용히 그 움직임을 바라보았습니다.",
+        "고마가 창문을 열자 봄바람이 살짝 들어왔습니다.",
+        "창가에 꽂아 둔 풀잎이 바람에 살랑였습니다.",
+        "고마는 풀잎이 가리키는 쪽에 작은 종이쪽지가 있다는 것을 보았습니다.",
       ],
       prompt: "글 속 낱말 '살랑였습니다'의 뜻은?",
       choices: [
         { id: "rustle-a", label: "A", text: "가볍게 움직였습니다.", nextSceneId: "compare", feedback: "맞아요.", points: 2, wordId: "rustle" },
         { id: "rustle-b", label: "B", text: "아주 세게 부딪혔습니다.", nextSceneId: "compare", feedback: "다시 생각해 봐요.", points: 0 },
-        { id: "rustle-c", label: "C", text: "완전히 멈추었습니다.", nextSceneId: "compare", feedback: "다시 생각해 봐요.", points: 0 },
-        { id: "rustle-d", label: "D", text: "큰 소리로 외쳤습니다.", nextSceneId: "compare", feedback: "다시 생각해 봐요.", points: 0 },
+        { id: "rustle-c", label: "C", text: "완전히 사라졌습니다.", nextSceneId: "compare", feedback: "다시 생각해 봐요.", points: 0 },
+        { id: "rustle-d", label: "D", text: "큰 소리로 울었습니다.", nextSceneId: "compare", feedback: "다시 생각해 봐요.", points: 0 },
       ],
     },
     {
@@ -64,9 +64,9 @@ export const DEFAULT_ADVENTURE: StoryAdventure = {
       focusWordId: "compare",
       questionType: "blank",
       narrative: [
-        "둥근 잎과 길쭉한 잎을 나란히 놓았습니다.",
-        "아이들은 두 잎의 같은 점과 다른 점을 찾았습니다.",
-        "모둠은 두 잎을 비교했습니다.",
+        "쪽지에는 노란 꽃가루가 묻어 있었습니다.",
+        "고마는 꿀단지 옆 꽃가루와 쪽지의 꽃가루를 나란히 놓았습니다.",
+        "고마와 친구들은 색과 모양을 비교했습니다.",
       ],
       prompt: "빈칸에 들어갈 낱말은?",
       choices: [
@@ -79,13 +79,13 @@ export const DEFAULT_ADVENTURE: StoryAdventure = {
     {
       id: "faint",
       chapter: "4장",
-      location: "낡은 책",
+      location: "낡은 지도",
       focusWordId: "faint",
       questionType: "synonym",
       narrative: [
-        "책장 사이에서 오래된 잎 그림이 나왔습니다.",
-        "그림 아래 글씨는 오래되어 희미했습니다.",
-        "민지는 눈을 가까이 대고 글씨를 읽었습니다.",
+        "쪽지 뒤에는 아주 오래된 숲 지도가 그려져 있었습니다.",
+        "비에 젖었던 흔적 때문에 길 이름이 희미했습니다.",
+        "고마는 눈을 가늘게 뜨고 흐릿한 글자를 읽어 보았습니다.",
       ],
       prompt: "'희미했습니다'와 비슷한 뜻은?",
       choices: [
@@ -98,13 +98,13 @@ export const DEFAULT_ADVENTURE: StoryAdventure = {
     {
       id: "infer",
       chapter: "5장",
-      location: "창가",
+      location: "민들레 길",
       focusWordId: "infer",
       questionType: "definitionToWord",
       narrative: [
-        "창가의 잎은 다른 잎보다 더 진한 초록색이었습니다.",
-        "창가에는 햇빛이 오래 들어왔습니다.",
-        "민지는 햇빛 때문에 잎 색이 진해졌다고 추론했습니다.",
+        "지도에는 민들레 그림과 꿀벌 발자국이 함께 남아 있었습니다.",
+        "교실 쪽지에도 같은 노란 꽃가루가 묻어 있었습니다.",
+        "고마는 누군가 민들레 길에서 왔다고 추론했습니다.",
       ],
       prompt: "이 장면에 알맞은 낱말은?",
       choices: [
@@ -117,13 +117,13 @@ export const DEFAULT_ADVENTURE: StoryAdventure = {
     {
       id: "classify",
       chapter: "6장",
-      location: "칠판 앞",
+      location: "숲길 입구",
       focusWordId: "classify",
       questionType: "situation",
       narrative: [
-        "아이들은 잎을 모양에 따라 나누었습니다.",
-        "둥근 잎은 왼쪽, 길쭉한 잎은 오른쪽에 붙였습니다.",
-        "선생님은 기준을 정해 나누었다고 말했습니다.",
+        "고마와 친구들은 길에서 찾은 단서를 책상 위에 펼쳤습니다.",
+        "발자국은 모양별로, 꽃가루는 색깔별로, 쪽지는 장소별로 나누었습니다.",
+        "친구들은 기준을 세워 단서를 분류했습니다.",
       ],
       prompt: "이 상황에 어울리는 낱말은?",
       choices: [
@@ -136,13 +136,13 @@ export const DEFAULT_ADVENTURE: StoryAdventure = {
     {
       id: "glimmer",
       chapter: "7장",
-      location: "복도",
+      location: "시냇가",
       focusWordId: "glimmer",
       questionType: "blank",
       narrative: [
-        "복도 창으로 오후 햇살이 들어왔습니다.",
-        "잎 표면의 작은 물방울이 반짝였습니다.",
-        "아이들은 빛나는 잎을 보며 감탄했습니다.",
+        "민들레 길 끝에는 맑은 시냇물이 흐르고 있었습니다.",
+        "물가의 돌 위에서 작은 꿀방울 하나가 햇빛을 받아 반짝였습니다.",
+        "고마는 빛나는 꿀방울을 보고 길을 더 따라가 보기로 했습니다.",
       ],
       prompt: "빈칸에 들어갈 낱말은?",
       choices: [
@@ -155,13 +155,13 @@ export const DEFAULT_ADVENTURE: StoryAdventure = {
     {
       id: "record",
       chapter: "8장",
-      location: "탐구 노트",
+      location: "고마의 탐정 노트",
       focusWordId: "record",
       questionType: "synonym",
       narrative: [
-        "민지는 잎의 모양과 색깔을 노트에 적었습니다.",
-        "친구들은 알게 된 내용을 그림으로도 남겼습니다.",
-        "모둠은 결과를 탐구 노트에 기록했습니다.",
+        "고마는 지금까지 찾은 단서를 탐정 노트에 적었습니다.",
+        "발자국 그림, 꽃가루 색, 꿀방울 위치도 빠뜨리지 않았습니다.",
+        "고마는 알게 된 내용을 차례대로 기록했습니다.",
       ],
       prompt: "'기록했습니다'와 비슷한 뜻은?",
       choices: [
@@ -174,13 +174,13 @@ export const DEFAULT_ADVENTURE: StoryAdventure = {
     {
       id: "cozy",
       chapter: "9장",
-      location: "도서관",
+      location: "꿀벌 할머니의 집",
       focusWordId: "cozy",
       questionType: "meaning",
       narrative: [
-        "아이들은 도서관 창가에 둘러앉았습니다.",
-        "햇살이 따뜻하게 내려와 자리가 포근했습니다.",
-        "민지는 그곳에서 발표할 말을 조용히 떠올렸습니다.",
+        "단서를 따라가자 작은 나무집이 보였습니다.",
+        "집 안에는 따뜻한 차 냄새와 달콤한 꿀 향기가 가득해 포근했습니다.",
+        "꿀벌 할머니는 고마를 보고 미안한 표정으로 웃었습니다.",
       ],
       prompt: "글 속 낱말 '포근했습니다'의 뜻은?",
       choices: [
@@ -193,13 +193,13 @@ export const DEFAULT_ADVENTURE: StoryAdventure = {
     {
       id: "explain",
       chapter: "10장",
-      location: "발표 자리",
+      location: "숲속 교실",
       focusWordId: "explain",
       questionType: "blank",
       narrative: [
-        "발표 시간이 되자 민지가 앞으로 나왔습니다.",
-        "민지는 잎을 나눈 기준과 이유를 친구들에게 말했습니다.",
-        "민지는 탐구 결과를 설명했습니다.",
+        "꿀벌 할머니는 교실에 선물하려고 꿀단지를 가져다 놓았다고 했습니다.",
+        "하지만 바람에 쪽지가 날아가서 모두가 궁금해했던 것입니다.",
+        "고마는 단서를 찾은 방법과 꿀단지의 사연을 친구들에게 설명했습니다.",
       ],
       prompt: "빈칸에 들어갈 낱말은?",
       choices: [
@@ -212,12 +212,12 @@ export const DEFAULT_ADVENTURE: StoryAdventure = {
     {
       id: "complete",
       chapter: "완료",
-      location: "교실",
-      narrative: ["탐구 노트와 낱말 이야기가 완성되었습니다."],
+      location: "숲속 교실",
+      narrative: ["고마와 친구들은 꿀차를 나누어 마시며 오늘 배운 낱말을 다시 떠올렸습니다."],
       prompt: "끝",
       choices: [],
       ending: {
-        title: "완성!",
+        title: "고마의 낱말 모험 완성!",
         message: "끝",
       },
     },

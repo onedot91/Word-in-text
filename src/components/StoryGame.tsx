@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
-import { ArrowLeft, CheckCircle2, Star, Trophy } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ChevronDown, Star, Trophy } from "lucide-react";
 import confetti from "canvas-confetti";
 import { StoryAdventure, StoryChoice, StoryScene } from "../types";
 
@@ -13,9 +13,10 @@ interface StoryGameProps {
 
 export function StoryGame({ adventure, onBack }: StoryGameProps) {
   const [sceneId, setSceneId] = useState(adventure.startSceneId);
-  const [scenePath, setScenePath] = useState([adventure.startSceneId]);
   const [score, setScore] = useState(0);
   const [step, setStep] = useState(0);
+  const [scenePath, setScenePath] = useState([adventure.startSceneId]);
+  const [showPreviousScenes, setShowPreviousScenes] = useState(false);
   const [selectedChoice, setSelectedChoice] = useState<StoryChoice | null>(null);
   const [visibleChars, setVisibleChars] = useState(0);
   const [visibleChoices, setVisibleChoices] = useState(0);
@@ -24,7 +25,8 @@ export function StoryGame({ adventure, onBack }: StoryGameProps) {
   const typingAnchorRef = useRef<HTMLDivElement | null>(null);
 
   const scene = useMemo(() => adventure.scenes.find((item) => item.id === sceneId) ?? adventure.scenes[0], [adventure.scenes, sceneId]);
-  const visibleScenes = scenePath
+  const previousScenes = scenePath
+    .slice(0, -1)
     .map((pathSceneId) => adventure.scenes.find((item) => item.id === pathSceneId))
     .filter((item): item is StoryScene => Boolean(item));
   const progress = Math.round((step / Math.max(adventure.scenes.length - 1, 1)) * 100);
@@ -137,6 +139,7 @@ export function StoryGame({ adventure, onBack }: StoryGameProps) {
       setSceneId(choice.nextSceneId);
       setScenePath((current) => [...current, choice.nextSceneId]);
       setStep((current) => current + 1);
+      setShowPreviousScenes(false);
       setSelectedChoice(null);
     }, 1300);
   };
@@ -146,12 +149,13 @@ export function StoryGame({ adventure, onBack }: StoryGameProps) {
     setScenePath([adventure.startSceneId]);
     setScore(0);
     setStep(0);
+    setShowPreviousScenes(false);
     setSelectedChoice(null);
   };
 
   return (
-    <main className="h-screen overflow-hidden px-4 py-3 sm:px-6">
-      <div className="mx-auto flex h-full w-full max-w-5xl flex-col gap-3">
+    <main className="min-h-screen overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
+      <div className="mx-auto flex min-h-[calc(100vh-2rem)] w-full max-w-5xl flex-col justify-center gap-3 sm:min-h-[calc(100vh-3rem)]">
         <header className="flex shrink-0 items-center justify-between gap-3">
           <button
             onClick={onBack}
@@ -171,39 +175,59 @@ export function StoryGame({ adventure, onBack }: StoryGameProps) {
           </div>
         </header>
 
-        <article className="flex min-h-0 flex-1 flex-col rounded-[24px] border-4 border-black bg-white p-4 shadow-[7px_7px_0px_0px_#000]">
+        <article className="flex flex-col rounded-[24px] border-4 border-black bg-white p-4 shadow-[7px_7px_0px_0px_#000]">
           <div
             ref={storyScrollRef}
-            className="min-h-0 flex-[0_1_54vh] space-y-5 overflow-y-auto rounded-2xl border-2 border-black bg-[#FFF8E7] px-6 py-5 pr-10"
+            className="max-h-[48vh] space-y-5 overflow-y-auto rounded-2xl border-2 border-black bg-[#FFF8E7] px-6 py-5 pr-10"
           >
-            {visibleScenes.map((visibleScene) => {
-              const isCurrentScene = visibleScene.id === scene.id;
-              const paragraphs = isCurrentScene ? getVisibleParagraphs(visibleScene.narrative, visibleChars) : visibleScene.narrative;
-
-              return (
-                <section
-                  key={visibleScene.id}
-                  ref={isCurrentScene ? currentSceneRef : undefined}
-                  className={`space-y-1.5 ${isCurrentScene ? "" : "opacity-35"}`}
+            {previousScenes.length > 0 && (
+              <div className="max-w-3xl">
+                <button
+                  type="button"
+                  onClick={() => setShowPreviousScenes((current) => !current)}
+                  className="inline-flex items-center gap-2 rounded-xl border-2 border-black bg-white px-3 py-2 text-base font-black shadow-[2px_2px_0px_0px_#000]"
+                  aria-expanded={showPreviousScenes}
                 >
-                  {paragraphs.map((paragraph, index) => (
-                    <p
-                      key={`${visibleScene.id}-${index}`}
-                      className="min-h-8 break-keep text-2xl font-black leading-10 sm:text-3xl sm:leading-[3.25rem]"
-                    >
-                      {renderStoryText(paragraph, isCurrentScene ? focusWord : undefined, isCurrentScene && shouldHideFocusWord)}
-                    </p>
-                  ))}
-                  {isCurrentScene && <div ref={typingAnchorRef} className="h-1" />}
-                </section>
-              );
-            })}
+                  지난 이야기
+                  <ChevronDown className={`transition-transform ${showPreviousScenes ? "rotate-180" : ""}`} size={18} />
+                </button>
+
+                {showPreviousScenes && (
+                  <div className="mt-3 space-y-4 rounded-2xl border-2 border-black bg-white/75 p-4">
+                    {previousScenes.map((previousScene) => (
+                      <section key={previousScene.id} className="space-y-1">
+                        <p className="text-sm font-black text-[#284B63]">
+                          {previousScene.chapter} · {previousScene.location}
+                        </p>
+                        {previousScene.narrative.map((paragraph, index) => (
+                          <p key={`${previousScene.id}-${index}`} className="break-keep text-lg font-bold leading-8 text-[#5F5A50]">
+                            {paragraph}
+                          </p>
+                        ))}
+                      </section>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <section key={scene.id} ref={currentSceneRef} className="space-y-3">
+              {getVisibleParagraphs(scene.narrative, visibleChars).map((paragraph, index) => (
+                <p
+                  key={`${scene.id}-${index}`}
+                  className="min-h-8 max-w-4xl break-keep text-2xl font-bold leading-10 text-black sm:text-3xl sm:leading-[3.25rem]"
+                >
+                  {renderStoryText(paragraph, focusWord, shouldHideFocusWord)}
+                </p>
+              ))}
+              <div ref={typingAnchorRef} className="h-1" />
+            </section>
           </div>
 
           {scene.ending ? (
             <EndingPanel score={score} onRestart={restart} title={scene.ending.title} />
           ) : (
-            <div className={`mt-3 shrink-0 transition-opacity ${isTextComplete ? "opacity-100" : "pointer-events-none opacity-0"}`}>
+            <div className={`mt-3 transition-opacity ${isTextComplete ? "opacity-100" : "pointer-events-none opacity-0"}`}>
               <h2 className="mb-3 break-keep text-2xl font-black sm:text-3xl">{scene.prompt}</h2>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {choices.slice(0, visibleChoices).map((choice, index) => {
